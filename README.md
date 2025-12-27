@@ -172,19 +172,38 @@ chmod +x scripts/build_macos.sh
 
 ### 架构概览
 
-#### 核心 Trait 系统
+#### 核心模块架构
 
-系统基于 trait 架构构建，提供清晰的关注点分离：
+系统采用模块化设计，各模块职责清晰：
 
-```
-DeviceDiscovery      - UDP 多播设备发现
-ConnectionManager    - TCP/TLS 连接管理
-InputCapture         - 平台特定的输入捕获
-InputInjection       - 平台特定的输入注入
-ClipboardService     - 剪切板监控和同步
-ConfigurationManager - 配置持久化
-SwitchController     - 设备切换逻辑
-```
+**网络层**
+- `network.rs` - TCP/TLS 连接管理
+- `discovery.rs` - UDP 多播设备发现
+- `protocol.rs` - 通信协议定义
+- `security.rs` - TLS 加密和证书管理
+
+**输入层**
+- `input.rs` - 输入系统抽象接口
+- `input/macos.rs` - macOS 平台输入实现
+- `input/windows.rs` - Windows 平台输入实现
+- `batching.rs` - 输入事件批处理优化
+
+**控制层**
+- `switch.rs` - 设备切换控制逻辑
+- `state.rs` - 全局状态管理
+- `device.rs` - 设备信息和状态
+- `hotkey.rs` - 全局热键管理
+
+**服务层**
+- `clipboard.rs` - 剪切板监控和同步
+- `config.rs` - 配置文件管理
+- `permissions.rs` - 系统权限检查
+- `recovery.rs` - 错误恢复机制
+
+**界面层**
+- `ui.rs` - UI 状态和逻辑
+- `tauri_commands.rs` - Tauri 命令处理
+- `tauri_main.rs` - GUI 应用入口
 
 #### 技术栈
 
@@ -193,8 +212,8 @@ SwitchController     - 设备切换逻辑
 - **GUI**: Tauri 1.5
 - **前端**: 原生 HTML/CSS/JavaScript
 - **平台 API**: 
-  - Windows: windows-rs
-  - macOS: core-graphics
+  - Windows: windows-rs, winapi
+  - macOS: core-graphics, core-foundation
 
 ---
 
@@ -202,42 +221,104 @@ SwitchController     - 设备切换逻辑
 
 ```
 破壁者/
-├── src/                    # Rust 源代码
-│   ├── lib.rs             # 库入口点
-│   ├── main.rs            # CLI 入口点
-│   ├── tauri_main.rs      # Tauri GUI 入口点
-│   ├── network.rs         # 网络连接管理
-│   ├── discovery.rs       # 设备发现
-│   ├── switch.rs          # 设备切换控制
-│   ├── clipboard.rs       # 剪切板服务
-│   ├── config.rs          # 配置管理
-│   ├── security.rs        # TLS 安全
-│   ├── permissions.rs     # 权限检查
-│   └── input/             # 平台特定输入
-│       ├── mod.rs
-│       ├── macos.rs
-│       └── windows.rs
+├── src/                      # Rust 后端源代码
+│   ├── lib.rs               # 库入口点，模块导出
+│   ├── main.rs              # CLI 命令行入口点
+│   ├── tauri_main.rs        # Tauri GUI 入口点
+│   │
+│   ├── network.rs           # 网络连接管理（TCP/TLS）
+│   ├── discovery.rs         # UDP 多播设备发现
+│   ├── protocol.rs          # 通信协议定义
+│   ├── security.rs          # TLS 加密和证书管理
+│   │
+│   ├── device.rs            # 设备信息和状态
+│   ├── switch.rs            # 设备切换控制逻辑
+│   ├── state.rs             # 全局状态管理
+│   │
+│   ├── input.rs             # 输入系统抽象层
+│   ├── input/               # 平台特定输入实现
+│   │   ├── macos.rs         # macOS 输入捕获/注入
+│   │   └── windows.rs       # Windows 输入捕获/注入
+│   │
+│   ├── clipboard.rs         # 剪切板监控和同步
+│   ├── hotkey.rs            # 全局热键管理
+│   ├── batching.rs          # 输入事件批处理
+│   │
+│   ├── config.rs            # 配置文件管理
+│   ├── permissions.rs       # 系统权限检查
+│   ├── recovery.rs          # 错误恢复机制
+│   ├── error.rs             # 错误类型定义
+│   │
+│   ├── ui.rs                # UI 状态和逻辑
+│   └── tauri_commands.rs    # Tauri 命令处理
 │
-├── ui/                     # Tauri 前端
-│   ├── index.html
-│   ├── app.js
-│   ├── styles.css
-│   └── dist/              # 构建输出
+├── ui/                       # Tauri 前端界面
+│   ├── index.html           # 主页面
+│   ├── app.js               # 主应用逻辑
+│   ├── styles.css           # 全局样式
+│   │
+│   ├── layout.html          # 设备布局配置页面
+│   ├── layout.js            # 布局配置逻辑
+│   ├── layout.css           # 布局页面样式
+│   │
+│   ├── hotkey.html          # 热键配置页面
+│   ├── hotkey.js            # 热键配置逻辑
+│   ├── hotkey.css           # 热键页面样式
+│   │
+│   ├── onboarding.html      # 新手引导页面
+│   ├── onboarding.js        # 引导逻辑
+│   ├── onboarding.css       # 引导页面样式
+│   │
+│   ├── update.html          # 更新检查页面
+│   ├── update.js            # 更新逻辑
+│   ├── update.css           # 更新页面样式
+│   │
+│   ├── notifications.js     # 通知系统
+│   ├── notifications.css    # 通知样式
+│   │
+│   ├── permissions-check.html  # 权限检查页面
+│   ├── test-notifications.html # 通知测试页面
+│   │
+│   └── dist/                # 前端构建输出
+│       ├── index.html
+│       ├── app.js
+│       └── styles.css
 │
-├── scripts/               # 构建脚本
-│   ├── build_macos.sh    # macOS 一键打包
-│   └── build_windows.ps1 # Windows 一键打包
+├── examples/                 # 示例代码
+│   ├── input_capture_demo.rs    # 输入捕获示例
+│   ├── input_injection_demo.rs  # 输入注入示例
+│   ├── permissions_demo.rs      # 权限检查示例
+│   └── state_management_demo.rs # 状态管理示例
 │
-├── tests/                 # 测试文件
-│   ├── property_tests.rs
-│   ├── e2e_integration_tests.rs
-│   └── performance_tests.rs
+├── scripts/                  # 构建和工具脚本
+│   ├── build_macos.sh       # macOS 一键打包脚本
+│   ├── build_windows.ps1    # Windows 一键打包脚本
+│   └── README.md            # 脚本使用说明
 │
-├── icons/                 # 应用图标
-├── Cargo.toml            # Rust 项目配置
-├── tauri.conf.json       # Tauri 配置
-├── build.rs              # 构建脚本
-└── README.md             # 本文件
+├── tests/                    # 测试套件
+│   ├── property_tests.rs         # 属性测试
+│   ├── e2e_integration_tests.rs  # 端到端集成测试
+│   └── performance_tests.rs      # 性能基准测试
+│
+├── icons/                    # 应用图标资源
+│   ├── icon.png             # 主图标
+│   ├── 32x32.png            # 32x32 图标
+│   ├── 128x128.png          # 128x128 图标
+│   ├── 128x128@2x.png       # 高分辨率图标
+│   └── README.md            # 图标说明
+│
+├── .github/                  # GitHub 配置
+│   └── workflows/           # CI/CD 工作流
+│
+├── .kiro/                    # Kiro IDE 配置
+│
+├── Cargo.toml               # Rust 项目配置
+├── Cargo.lock               # 依赖锁定文件
+├── tauri.conf.json          # Tauri 应用配置
+├── build.rs                 # 构建脚本
+├── signing.example.json     # 代码签名配置示例
+│
+└── README.md                # 项目说明文档
 ```
 
 ### 构建输出
@@ -253,6 +334,17 @@ dist/           # 打包输出目录
 ├── Cross-Platform KVM-*-portable.zip   # Windows 便携版
 └── Cross-Platform KVM-*.msi            # Windows 安装程序（可选）
 ```
+
+### 前端页面结构
+
+UI 采用多页面设计，每个功能独立页面：
+
+- `index.html` - 主控制面板（设备列表、连接状态）
+- `layout.html` - 设备布局配置（拖拽式布局编辑器）
+- `hotkey.html` - 热键配置（快捷键绑定）
+- `onboarding.html` - 新手引导（首次使用向导）
+- `update.html` - 更新检查（版本更新管理）
+- `permissions-check.html` - 权限检查（系统权限验证）
 
 ---
 

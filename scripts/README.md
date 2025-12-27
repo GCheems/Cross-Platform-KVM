@@ -1,217 +1,159 @@
-# Build Scripts
+# 构建脚本
 
-This directory contains scripts for building and packaging the Cross-Platform KVM application.
+本目录包含用于构建和打包 Cross-Platform KVM 应用的脚本。
 
-## Available Scripts
-
-### `build.sh`
-Universal build script that detects the platform and runs the appropriate build script.
-
-**Usage:**
-```bash
-./scripts/build.sh [options]
-```
-
-**Platforms:** macOS, Windows (via Git Bash)
-
----
+## 可用脚本
 
 ### `build_windows.ps1`
-Windows-specific build script for creating MSI installers.
+Windows 平台一键打包脚本，自动创建便携版 ZIP 和 MSI 安装程序。
 
-**Usage:**
+**用法：**
 ```powershell
-# Development build
+# 默认 Release 构建
 .\scripts\build_windows.ps1
 
-# Release build
-.\scripts\build_windows.ps1 -Release
+# Debug 构建
+.\scripts\build_windows.ps1 -Debug
 
-# Signed release build
-.\scripts\build_windows.ps1 -Release -Sign -CertThumbprint "YOUR_THUMBPRINT"
+# 跳过 MSI 生成
+.\scripts\build_windows.ps1 -SkipMsi
 ```
 
-**Requirements:**
-- PowerShell 5.1+
-- Rust toolchain
-- Node.js
-- WiX Toolset 3.11+
-- Code signing certificate (optional, for signing)
+**功能：**
+- ✅ 自动检查 Rust、Cargo、Visual Studio 依赖
+- ✅ 构建 Release 或 Debug 版本
+- ✅ 创建便携版 ZIP（包含可执行文件和使用说明）
+- ✅ 可选生成 MSI 安装程序（检测到 WiX Toolset 时）
+- ✅ 彩色输出和进度提示
 
-**Output:** `target/release/bundle/msi/*.msi`
+**依赖：**
+- PowerShell 5.1+
+- Rust 工具链（MSVC 或 GNU）
+- Visual Studio Build Tools（MSVC 工具链）或 MinGW-w64（GNU 工具链）
+- WiX Toolset 3.11+（可选，用于生成 MSI）
+
+**输出：** `dist/` 目录
+- `Cross-Platform KVM-0.1.0-windows-x64-portable.zip` - 便携版
+- `Cross-Platform KVM-0.1.0-windows-x64.msi` - 安装程序（可选）
 
 ---
 
 ### `build_macos.sh`
-macOS-specific build script for creating DMG installers.
+macOS 平台一键打包脚本，自动创建 .app 应用包和 .dmg 安装镜像。
 
-**Usage:**
+**用法：**
 ```bash
-# Development build
+# 默认 Release 构建
 ./scripts/build_macos.sh
 
-# Release build
-./scripts/build_macos.sh --release
-
-# Signed release build
-./scripts/build_macos.sh --release --sign "Developer ID Application: Name (TEAM_ID)"
-
-# Signed and notarized build
-./scripts/build_macos.sh --release \
-  --sign "Developer ID Application: Name (TEAM_ID)" \
-  --notarize "apple-id@example.com" "TEAM_ID" "app-password"
+# Debug 构建
+./scripts/build_macos.sh --debug
 ```
 
-**Requirements:**
+**功能：**
+- ✅ 自动检查 Rust、Cargo、Xcode 依赖
+- ✅ 构建 Release 或 Debug 版本
+- ✅ 创建 .app 应用包（包含 Info.plist 和图标）
+- ✅ 生成 .dmg 安装镜像
+- ✅ 彩色输出和进度提示
+
+**依赖：**
 - Bash 4.0+
-- Rust toolchain
-- Node.js
+- Rust 工具链
 - Xcode Command Line Tools
-- ImageMagick (optional, for icon generation)
-- Developer ID certificate (optional, for signing)
-- Apple Developer account (optional, for notarization)
+- create-dmg（可选，用于创建更美观的 DMG）
 
-**Output:** `target/release/bundle/dmg/*.dmg`
-
----
-
-### `generate_icons.sh`
-Generates application icons in all required formats from a base image.
-
-**Usage:**
-```bash
-./scripts/generate_icons.sh
-```
-
-**Requirements:**
-- ImageMagick (for actual icon generation)
-- macOS (for .icns generation)
-
-**Output:** `icons/` directory with:
-- `32x32.png`
-- `128x128.png`
-- `128x128@2x.png`
-- `icon.png`
-- `icon.ico` (Windows)
-- `icon.icns` (macOS)
-
-**Note:** If ImageMagick is not available, creates placeholder files instead.
+**输出：** `dist/` 目录
+- `Cross-Platform KVM.app` - 应用包
+- `Cross-Platform KVM_0.1.0_aarch64.dmg` - 安装镜像（ARM）
+- `Cross-Platform KVM_0.1.0_x64.dmg` - 安装镜像（Intel）
 
 ---
 
-### `verify_structure.sh`
-Verifies the project structure and dependencies.
+## 快速参考
 
-**Usage:**
-```bash
-./scripts/verify_structure.sh
-```
-
-**Checks:**
-- Project directory structure
-- Required files exist
-- Dependencies are installed
-
----
-
-## Quick Reference
-
-| Task | Command |
+| 任务 | 命令 |
 |------|---------|
-| Build for current platform | `./scripts/build.sh` |
-| Build Windows MSI | `.\scripts\build_windows.ps1 -Release` |
-| Build macOS DMG | `./scripts/build_macos.sh --release` |
-| Generate icons | `./scripts/generate_icons.sh` |
-| Verify project | `./scripts/verify_structure.sh` |
+| Windows 打包 | `.\scripts\build_windows.ps1` |
+| macOS 打包 | `./scripts/build_macos.sh` |
+| Windows Debug | `.\scripts\build_windows.ps1 -Debug` |
+| macOS Debug | `./scripts/build_macos.sh --debug` |
 
-## Build Output Locations
+## 构建输出位置
 
-| Platform | Debug Build | Release Build |
+| 平台 | 输出目录 | 文件 |
 |----------|-------------|---------------|
-| Windows | `target/debug/bundle/msi/` | `target/release/bundle/msi/` |
-| macOS | `target/debug/bundle/dmg/` | `target/release/bundle/dmg/` |
+| Windows | `dist/` | `*.zip`, `*.msi` |
+| macOS | `dist/` | `*.app`, `*.dmg` |
 
-## Environment Variables
+## 故障排除
 
-### Windows Build
+### "Permission denied" 运行脚本时
 
-- `WINDOWS_CERTIFICATE_THUMBPRINT` - Certificate thumbprint for signing
-- `TIMESTAMP_URL` - Timestamp server URL (default: http://timestamp.digicert.com)
-
-### macOS Build
-
-- `APPLE_SIGNING_IDENTITY` - Code signing identity
-- `APPLE_ID` - Apple ID for notarization
-- `APPLE_TEAM_ID` - Apple Developer Team ID
-- `APPLE_APP_PASSWORD` - App-specific password for notarization
-
-## Troubleshooting
-
-### "Permission denied" when running scripts
-
-**Solution:**
+**解决方案：**
 ```bash
 chmod +x scripts/*.sh
 ```
 
-### "Execution policy" error on Windows
+### Windows "Execution policy" 错误
 
-**Solution:**
+**解决方案：**
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-Or run with bypass:
+或使用 bypass 运行：
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\build_windows.ps1
 ```
 
-### Build fails with "WiX not found"
+### 构建失败 "WiX not found"
 
-**Solution:** Install WiX Toolset from https://wixtoolset.org/releases/
+**解决方案：** 安装 WiX Toolset
+```powershell
+winget install WiXToolset.WiXToolset
+```
 
-### Build fails with "codesign not found"
+### 构建失败 "Visual Studio Build Tools not found"
 
-**Solution:** Install Xcode Command Line Tools:
+**解决方案：** 安装 Visual Studio Build Tools
+```powershell
+winget install Microsoft.VisualStudio.2022.BuildTools
+```
+
+### macOS 构建失败 "Xcode Command Line Tools not found"
+
+**解决方案：** 安装 Xcode Command Line Tools
 ```bash
 xcode-select --install
 ```
 
-### Icons not generated
+### Rust 工具链问题（Windows）
 
-**Solution:** Install ImageMagick:
-```bash
-# macOS
-brew install imagemagick
+如果使用 GNU 工具链但缺少 MinGW-w64：
 
-# Ubuntu/Debian
-sudo apt-get install imagemagick
+**推荐方案：** 切换到 MSVC 工具链
+```powershell
+# 1. 卸载当前 Rust
+winget uninstall Rustlang.Rust.GNU
+
+# 2. 安装 MSVC 版本
+winget install Rustlang.Rust.MSVC
+
+# 3. 安装 Visual Studio Build Tools
+winget install Microsoft.VisualStudio.2022.BuildTools
 ```
 
-Or use placeholder icons (created automatically).
+**备选方案：** 安装 MinGW-w64
+```powershell
+winget install mingw-w64
+```
 
-## Additional Documentation
+## 贡献
 
-- **Comprehensive Guide:** `docs/PACKAGING.md`
-- **Quick Start:** `docs/BUILD_QUICK_START.md`
-- **Architecture:** `docs/ARCHITECTURE.md`
+添加新构建脚本时：
 
-## CI/CD
-
-For automated builds, see `.github/workflows/build-installers.yml`
-
-The workflow automatically:
-- Builds for both platforms
-- Signs installers (when credentials available)
-- Creates GitHub releases
-- Uploads artifacts
-
-## Contributing
-
-When adding new build scripts:
-
-1. Make scripts executable: `chmod +x script.sh`
-2. Add error handling: `set -e` for bash, `$ErrorActionPreference = "Stop"` for PowerShell
-3. Add usage documentation in this README
-4. Test on clean environment
-5. Update CI/CD workflow if needed
+1. 使脚本可执行：`chmod +x script.sh`
+2. 添加错误处理：bash 使用 `set -e`，PowerShell 使用 `$ErrorActionPreference = "Stop"`
+3. 在此 README 中添加使用文档
+4. 在干净环境中测试
