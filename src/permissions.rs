@@ -206,12 +206,19 @@ pub fn configure_firewall_windows() -> Result<()> {
 /// Check accessibility permissions (macOS)
 #[cfg(target_os = "macos")]
 pub fn check_accessibility_macos() -> Result<bool> {
-    // Use AXIsProcessTrusted to check accessibility permissions
-    // This is a simplified implementation
-    // In a real implementation, we would use:
-    // let trusted = AXIsProcessTrusted();
-    // For now, we'll return false to prompt the user
-    Ok(false)
+    // Use core-foundation to check AXIsProcessTrusted
+    // This requires linking against ApplicationServices framework
+    
+    #[link(name = "ApplicationServices", kind = "framework")]
+    extern "C" {
+        fn AXIsProcessTrusted() -> bool;
+    }
+    
+    unsafe {
+        let is_trusted = AXIsProcessTrusted();
+        log::info!("Accessibility permission check: {}", is_trusted);
+        Ok(is_trusted)
+    }
 }
 
 /// Request accessibility permissions (macOS)
@@ -234,10 +241,32 @@ pub fn request_accessibility_macos() -> Result<()> {
 /// Check input monitoring permissions (macOS)
 #[cfg(target_os = "macos")]
 pub fn check_input_monitoring_macos() -> Result<bool> {
-    // Check if input monitoring is enabled
-    // This requires checking IOHIDRequestAccess
-    // For now, return false to prompt the user
-    Ok(false)
+    // Check if input monitoring is enabled by attempting to create an event tap
+    // If we can create it, we have permission
+    
+    use core_graphics::event::{CGEventTap, CGEventTapLocation, CGEventTapOptions, CGEventTapPlacement, CGEventType};
+    
+    // Try to create a passive event tap (listen-only)
+    let tap_result = CGEventTap::new(
+        CGEventTapLocation::HID,
+        CGEventTapPlacement::HeadInsertEventTap,
+        CGEventTapOptions::ListenOnly,
+        vec![CGEventType::KeyDown],
+        |_proxy, _event_type, event| {
+            Some(event.to_owned())
+        },
+    );
+    
+    match tap_result {
+        Ok(_tap) => {
+            log::info!("Input monitoring permission check: granted");
+            Ok(true)
+        }
+        Err(_) => {
+            log::info!("Input monitoring permission check: denied");
+            Ok(false)
+        }
+    }
 }
 
 /// Request input monitoring permissions (macOS)

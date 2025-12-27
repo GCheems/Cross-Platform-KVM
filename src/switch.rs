@@ -277,19 +277,20 @@ impl SwitchController for DefaultSwitchController {
         Ok(())
     }
 
+    /// Check if edge switch should be triggered at the given position
+    /// Returns the target device ID if a switch should occur
+    /// Note: This is a synchronous method for compatibility with existing code
+    /// Consider using check_edge_switch_async for better async integration
     fn should_trigger_edge_switch(&self, x: i32, y: i32) -> Option<String> {
-        // This is a synchronous method, so we need to use blocking operations
-        // In a real implementation, this would be called from an async context
-        // For now, we'll use try_read which doesn't block
-        
+        // Use try_read to avoid blocking
         let active = self.active_device.try_read().ok()?;
-        let active_id = active.as_ref()?;
+        let active_id = active.as_ref()?.clone(); // Clone to avoid borrow issues
+        drop(active);
         
         let devices = self.devices.try_read().ok()?;
-        let active_device = devices.get(active_id)?;
+        let active_device = devices.get(&active_id)?;
         let resolution = active_device.screen_resolution;
         drop(devices);
-        drop(active);
         
         // Detect if we're at an edge
         let edge = self.detect_edge(x, y, resolution.0 as i32, resolution.1 as i32)?;
@@ -306,13 +307,11 @@ impl SwitchController for DefaultSwitchController {
                     // Check if enough time has passed
                     let elapsed = now.duration_since(state.first_detected);
                     if elapsed >= Duration::from_millis(self.edge_delay_ms) {
-                        // Trigger switch
-                        let target = {
-                            // We need to use a runtime to call async function
-                            // This is a limitation of the synchronous interface
-                            tokio::runtime::Handle::try_current().ok()?
-                                .block_on(self.find_adjacent_device(edge))?
-                        };
+                        // Trigger switch - but we can't call async function here
+                        // So we'll use a synchronous helper function
+                        let layout = self.layout.try_read().ok()?;
+                        let target = DefaultSwitchController::find_adjacent_device_sync(&layout, &active_id, edge)?;
+                        drop(layout);
                         
                         // Clear edge state
                         *edge_state = None;
@@ -322,18 +321,18 @@ impl SwitchController for DefaultSwitchController {
                 } else {
                     // Different edge, reset state
                     *edge_state = Some(EdgeState {
-                        position: (x, y),
-                        first_detected: now,
                         direction: edge,
+                        first_detected: now,
+                        position: (x, y),
                     });
                 }
             }
             None => {
-                // First time at edge, record state
+                // First time at edge, record it
                 *edge_state = Some(EdgeState {
-                    position: (x, y),
-                    first_detected: now,
                     direction: edge,
+                    first_detected: now,
+                    position: (x, y),
                 });
             }
         }
@@ -355,6 +354,64 @@ impl SwitchController for DefaultSwitchController {
             let (_, rx) = mpsc::channel(100);
             rx
         }
+    }
+}
+
+// Private helper methods for DefaultSwitchController
+impl DefaultSwitchController {
+    /// Synchronous version of find_adjacent_device for use in should_trigger_edge_switch
+    fn find_adjacent_device_sync(
+        layout: &DeviceLayout,
+        active_id: &str,
+        direction: EdgeDirection,
+    ) -> Option<String> {
+        let active_pos = layout.devices.get(active_id)?;
+        
+        let mut best_match: Option<(String, i32)> = None;
+        
+        for (device_id, pos) in &layout.devices {
+            if device_id == active_id {
+                continue;
+            }
+            
+            let is_adjacent = match direction {
+                EdgeDirection::Left => {
+                    pos.x + pos.width <= active_pos.x &&
+                    !(pos.y + pos.height <= active_pos.y || pos.y >= active_pos.y + active_pos.height)
+                }
+                EdgeDirection::Right => {
+                    pos.x >= active_pos.x + active_pos.width &&
+                    !(pos.y + pos.height <= active_pos.y || pos.y >= active_pos.y + active_pos.height)
+                }
+                EdgeDirection::Top => {
+                    pos.y + pos.height <= active_pos.y &&
+                    !(pos.x + pos.width <= active_pos.x || pos.x >= active_pos.x + active_pos.width)
+                }
+                EdgeDirection::Bottom => {
+                    pos.y >= active_pos.y + active_pos.height &&
+                    !(pos.x + pos.width <= active_pos.x || pos.x >= active_pos.x + active_pos.width)
+                }
+            };
+            
+            if is_adjacent {
+                let distance = match direction {
+                    EdgeDirection::Left => active_pos.x - (pos.x + pos.width),
+                    EdgeDirection::Right => pos.x - (active_pos.x + active_pos.width),
+                    EdgeDirection::Top => active_pos.y - (pos.y + pos.height),
+                    EdgeDirection::Bottom => pos.y - (active_pos.y + active_pos.height),
+                };
+                
+                if let Some((_, best_distance)) = &best_match {
+                    if distance < *best_distance {
+                        best_match = Some((device_id.clone(), distance));
+                    }
+                } else {
+                    best_match = Some((device_id.clone(), distance));
+                }
+            }
+        }
+        
+        best_match.map(|(id, _)| id)
     }
 }
 

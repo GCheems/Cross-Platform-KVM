@@ -3,6 +3,12 @@ use crate::input::{InputEvent, MouseButton, Modifiers};
 use crate::clipboard::ClipboardContent;
 use std::io::{Read, Write};
 
+/// Maximum allowed payload size (10 MB to prevent DoS attacks)
+pub const MAX_PAYLOAD_SIZE: u32 = 10 * 1024 * 1024;
+
+/// Maximum allowed clipboard content size (5 MB)
+pub const MAX_CLIPBOARD_SIZE: u32 = 5 * 1024 * 1024;
+
 /// Magic number for protocol identification: "KV" in ASCII
 pub const MAGIC_NUMBER: u16 = 0x4B56;
 
@@ -66,7 +72,7 @@ impl MessageHeader {
         bytes
     }
 
-    /// Deserialize header from bytes
+    /// Deserialize header from bytes with validation
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
         if bytes.len() < 8 {
             return Err(KvmError::Protocol("Header too short".to_string()));
@@ -84,6 +90,14 @@ impl MessageHeader {
 
         let event_type = EventType::from_u8(bytes[3])?;
         let payload_length = u32::from_be_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
+        
+        // Validate payload size to prevent DoS attacks
+        if payload_length > MAX_PAYLOAD_SIZE {
+            return Err(KvmError::Protocol(format!(
+                "Payload size {} exceeds maximum allowed size of {} bytes",
+                payload_length, MAX_PAYLOAD_SIZE
+            )));
+        }
 
         Ok(Self {
             magic,
@@ -182,7 +196,7 @@ pub fn encode_input_event(event: &InputEvent) -> Result<ProtocolMessage> {
     }
 }
 
-/// Decode a protocol message into an InputEvent
+/// Decode a protocol message into an InputEvent with validation
 pub fn decode_input_event(message: &ProtocolMessage) -> Result<InputEvent> {
     match message.header.event_type {
         EventType::MouseMove => {
@@ -201,6 +215,14 @@ pub fn decode_input_event(message: &ProtocolMessage) -> Result<InputEvent> {
                 message.payload[6],
                 message.payload[7],
             ]);
+            
+            // Validate coordinates are within reasonable bounds (-10000 to 10000)
+            if x < -10000 || x > 10000 || y < -10000 || y > 10000 {
+                return Err(KvmError::Protocol(format!(
+                    "Mouse coordinates out of bounds: ({}, {})", x, y
+                )));
+            }
+            
             Ok(InputEvent::MouseMove { x, y })
         }
         EventType::MouseButton => {
@@ -234,6 +256,14 @@ pub fn decode_input_event(message: &ProtocolMessage) -> Result<InputEvent> {
                 message.payload[6],
                 message.payload[7],
             ]);
+            
+            // Validate scroll deltas are within reasonable bounds (-1000 to 1000)
+            if delta_x < -1000 || delta_x > 1000 || delta_y < -1000 || delta_y > 1000 {
+                return Err(KvmError::Protocol(format!(
+                    "Scroll deltas out of bounds: ({}, {})", delta_x, delta_y
+                )));
+            }
+            
             Ok(InputEvent::MouseScroll { delta_x, delta_y })
         }
         EventType::KeyPress => {
@@ -246,6 +276,14 @@ pub fn decode_input_event(message: &ProtocolMessage) -> Result<InputEvent> {
                 message.payload[2],
                 message.payload[3],
             ]);
+            
+            // Validate key code is within reasonable range (0-65535)
+            if key_code > 65535 {
+                return Err(KvmError::Protocol(format!(
+                    "Key code out of bounds: {}", key_code
+                )));
+            }
+            
             let modifiers = decode_modifiers(message.payload[4]);
             let pressed = message.payload[5] != 0;
             Ok(InputEvent::KeyPress { key_code, modifiers, pressed })
@@ -275,16 +313,32 @@ fn decode_modifiers(byte: u8) -> Modifiers {
     }
 }
 
-/// Encode clipboard content into a protocol message
+/// Encode clipboard content into a protocol message with size validation
 pub fn encode_clipboard_content(content: &ClipboardContent) -> Result<ProtocolMessage> {
     let payload = match content {
         ClipboardContent::Text(text) => {
+            // Validate text size
+            if text.len() > MAX_CLIPBOARD_SIZE as usize {
+                return Err(KvmError::Protocol(format!(
+                    "Clipboard text size {} exceeds maximum of {} bytes",
+                    text.len(), MAX_CLIPBOARD_SIZE
+                )));
+            }
+            
             let mut payload = Vec::with_capacity(1 + text.len());
             payload.push(0u8); // Type: Text
             payload.extend_from_slice(text.as_bytes());
             payload
         }
         ClipboardContent::Image(data) => {
+            // Validate image size
+            if data.len() > MAX_CLIPBOARD_SIZE as usize {
+                return Err(KvmError::Protocol(format!(
+                    "Clipboard image size {} exceeds maximum of {} bytes",
+                    data.len(), MAX_CLIPBOARD_SIZE
+                )));
+            }
+            
             let mut payload = Vec::with_capacity(1 + data.len());
             payload.push(1u8); // Type: Image
             payload.extend_from_slice(data);
