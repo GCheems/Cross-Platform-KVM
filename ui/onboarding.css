@@ -1,0 +1,508 @@
+/* Onboarding Container */
+.onboarding-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #e5e7eb;
+    z-index: 0;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+    background: #3b82f6;
+    color: white;
+}
+
+.progress-step.completed .step-number {
+    background: #10b981;
+    color: white;
+}
+
+.step-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.progress-step.active .step-label {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* Onboarding Steps */
+.onboarding-step {
+    display: none;
+    flex: 1;
+    animation: fadeIn 0.3s ease;
+}
+
+.onboarding-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.step-content {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.step-content h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.subtitle {
+    font-size: 1.125rem;
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+/* Welcome Step */
+.welcome-icon {
+    font-size: 4rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.feature-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.feature-item h3 {
+    margin: 0 0 0.25rem 0;
+    color: #1f2937;
+    font-size: 1.125rem;
+}
+
+.feature-item p {
+    margin: 0;
+    color: #6b7280;
+}
+
+/* Permissions Step */
+.permission-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.permission-item {
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: border-color 0.3s ease;
+}
+
+.permission-item.granted {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.permission-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.permission-icon {
+    font-size: 1.5rem;
+}
+
+.permission-header h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.125rem;
+    color: #1f2937;
+}
+
+.permission-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.permission-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.permission-status.granted {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.permission-status.denied {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.permission-item p {
+    margin: 0.5rem 0;
+    color: #6b7280;
+}
+
+.permission-item .btn {
+    margin-top: 1rem;
+}
+
+.permission-help {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.permission-help strong {
+    color: #1f2937;
+}
+
+.permission-help ol {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1.5rem;
+}
+
+.permission-help li {
+    margin: 0.25rem 0;
+    color: #4b5563;
+}
+
+/* Pairing Step */
+.pairing-status {
+    text-align: center;
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.scanning-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.discovered-devices {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.pairing-device-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pairing-device-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.pairing-device-card.paired {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.pairing-device-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.pairing-device-icon {
+    font-size: 2rem;
+}
+
+.pairing-device-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.pairing-device-os {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.pairing-device-status {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.pairing-device-status.available {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.pairing-device-status.paired {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.pairing-help {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin: 2rem 0;
+}
+
+.pairing-help h3 {
+    margin: 0 0 0.75rem 0;
+    color: #1e40af;
+}
+
+.pairing-help ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.pairing-help li {
+    margin: 0.5rem 0;
+    color: #1e40af;
+}
+
+/* Layout Tutorial Step */
+.layout-tutorial {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.tutorial-canvas {
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    min-height: 400px;
+    position: relative;
+    padding: 2rem;
+}
+
+.tutorial-device {
+    position: absolute;
+    width: 150px;
+    height: 100px;
+    background: white;
+    border: 2px solid #3b82f6;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: move;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.tutorial-device:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tutorial-device.local-device {
+    border-color: #10b981;
+    background: #f0fdf4;
+    cursor: default;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.device-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.device-name {
+    font-weight: 600;
+    color: #1f2937;
+    text-align: center;
+}
+
+.tutorial-instructions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tutorial-instructions h3 {
+    margin: 0;
+    color: #1f2937;
+}
+
+.tutorial-instructions ol {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.tutorial-instructions li {
+    margin: 0.75rem 0;
+    color: #4b5563;
+}
+
+.tutorial-instructions strong {
+    color: #1f2937;
+}
+
+.tutorial-tip {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #fffbeb;
+    border-radius: 6px;
+    border-left: 4px solid #f59e0b;
+}
+
+.tip-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.tutorial-tip p {
+    margin: 0;
+    color: #92400e;
+    font-size: 0.875rem;
+}
+
+/* Step Actions */
+.step-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-large {
+    padding: 0.875rem 2rem;
+    font-size: 1.125rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .onboarding-container {
+        padding: 1rem;
+    }
+
+    .step-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .layout-tutorial {
+        grid-template-columns: 1fr;
+    }
+
+    .tutorial-canvas {
+        min-height: 300px;
+    }
+
+    .discovered-devices {
+        grid-template-columns: 1fr;
+    }
+
+    .step-actions {
+        flex-direction: column-reverse;
+    }
+
+    .step-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Platform-specific visibility */
+.windows-only,
+.macos-only {
+    display: none;
+}
+
+body.platform-windows .windows-only {
+    display: block;
+}
+
+body.platform-macos .macos-only {
+    display: block;
+}

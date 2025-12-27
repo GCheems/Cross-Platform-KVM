@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Configuration - Cross-Platform KVM</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="notifications.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Layout Configuration</h1>
+            <p class="subtitle">Arrange your devices and configure edge switching</p>
+        </header>
+
+        <div class="toolbar">
+            <button id="back-btn" class="btn btn-secondary">
+                <span class="icon">←</span>
+                Back to Devices
+            </button>
+            <div class="toolbar-actions">
+                <button id="reset-btn" class="btn btn-secondary">
+                    <span class="icon">↺</span>
+                    Reset Layout
+                </button>
+                <button id="save-btn" class="btn btn-primary">
+                    <span class="icon">💾</span>
+                    Save Layout
+                </button>
+            </div>
+        </div>
+
+        <div class="layout-editor">
+            <div class="editor-sidebar">
+                <h3>Available Devices</h3>
+                <div id="device-palette" class="device-palette">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading devices...</p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3>Instructions</h3>
+                    <ul class="instructions">
+                        <li>Drag devices from the list to the canvas</li>
+                        <li>Arrange devices to match your physical setup</li>
+                        <li>Click a device to configure edge switching</li>
+                        <li>Save your layout when done</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="editor-canvas-container">
+                <div id="canvas" class="editor-canvas">
+                    <div class="canvas-grid"></div>
+                    <div id="devices-container" class="devices-container"></div>
+                </div>
+                <div class="canvas-info">
+                    <span>Drag devices to arrange them</span>
+                </div>
+            </div>
+
+            <div class="editor-properties" id="properties-panel" style="display: none;">
+                <h3>Device Properties</h3>
+                <div id="device-properties">
+                    <div class="property-group">
+                        <h4 id="selected-device-name">Device Name</h4>
+                        <p class="property-description">Configure which edges trigger device switching</p>
+                    </div>
+                    
+                    <div class="property-group">
+                        <h4>Edge Switching</h4>
+                        <div class="edge-switches">
+                            <label class="switch-label">
+                                <input type="checkbox" id="edge-left" checked>
+                                <span>Left Edge</span>
+                            </label>
+                            <label class="switch-label">
+                                <input type="checkbox" id="edge-right" checked>
+                                <span>Right Edge</span>
+                            </label>
+                            <label class="switch-label">
+                                <input type="checkbox" id="edge-top" checked>
+                                <span>Top Edge</span>
+                            </label>
+                            <label class="switch-label">
+                                <input type="checkbox" id="edge-bottom" checked>
+                                <span>Bottom Edge</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <h4>Position</h4>
+                        <div class="position-info">
+                            <div class="info-item">
+                                <span class="info-label">X:</span>
+                                <span id="pos-x">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Y:</span>
+                                <span id="pos-y">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Width:</span>
+                                <span id="pos-width">1920</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Height:</span>
+                                <span id="pos-height">1080</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="remove-device-btn" class="btn btn-danger" style="width: 100%; margin-top: 16px;">
+                        <span class="icon">🗑️</span>
+                        Remove from Layout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script src="layout.js"></script>
+</body>
+</html>

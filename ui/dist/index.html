@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Platform KVM</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cross-Platform KVM</h1>
+            <p class="subtitle">Device Discovery and Management</p>
+        </header>
+
+        <div class="toolbar">
+            <button id="refresh-btn" class="btn btn-primary">
+                <span class="icon">🔄</span>
+                Refresh Devices
+            </button>
+            <div class="status-indicator">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Scanning...</span>
+            </div>
+        </div>
+
+        <div class="device-list" id="device-list">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Discovering devices...</p>
+            </div>
+        </div>
+
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-icon">📡</div>
+            <h2>No Devices Found</h2>
+            <p>Make sure other KVM instances are running on your local network.</p>
+            <button id="retry-btn" class="btn btn-secondary">Scan Again</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Platform KVM</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="notifications.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cross-Platform KVM</h1>
+            <p class="subtitle">Device Discovery and Management</p>
+        </header>
+
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button id="refresh-btn" class="btn btn-primary">
+                    <span class="icon">🔄</span>
+                    Refresh Devices
+                </button>
+                <button id="layout-btn" class="btn btn-secondary">
+                    <span class="icon">⚙️</span>
+                    Configure Layout
+                </button>
+                <button id="hotkey-btn" class="btn btn-secondary">
+                    <span class="icon">⌨️</span>
+                    Configure Hotkeys
+                </button>
+                <button id="update-btn" class="btn btn-secondary">
+                    <span class="icon">⬇️</span>
+                    Check for Updates
+                </button>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Scanning...</span>
+            </div>
+        </div>
+
+        <div class="device-list" id="device-list">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Discovering devices...</p>
+            </div>
+        </div>
+
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-icon">📡</div>
+            <h2>No Devices Found</h2>
+            <p>Make sure other KVM instances are running on your local network.</p>
+            <button id="retry-btn" class="btn btn-secondary">Scan Again</button>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

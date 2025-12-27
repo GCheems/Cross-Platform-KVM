@@ -1,0 +1,39 @@
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Configuration (may contain sensitive data)
+config.json
+*.key
+*.pem
+
+# Code signing
+signing.json
+*.pfx
+*.p12
+*.cer
+*.crt
+
+# Build artifacts
+*.msi
+*.dmg
+*.exe
+*.app
+*.deb
+*.rpm

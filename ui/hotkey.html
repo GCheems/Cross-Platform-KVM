@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotkey Configuration - Cross-Platform KVM</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="hotkey.css">
+    <link rel="stylesheet" href="notifications.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Hotkey Configuration</h1>
+            <p class="subtitle">Configure keyboard shortcuts for quick device switching</p>
+        </header>
+
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button id="back-btn" class="btn btn-secondary">
+                    <span class="icon">←</span>
+                    Back to Devices
+                </button>
+                <button id="add-hotkey-btn" class="btn btn-primary">
+                    <span class="icon">➕</span>
+                    Add Hotkey
+                </button>
+            </div>
+            <div class="status-indicator">
+                <span id="status-text">Ready</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="hotkey-list" id="hotkey-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading hotkeys...</p>
+                </div>
+            </div>
+
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-icon">⌨️</div>
+                <h2>No Hotkeys Configured</h2>
+                <p>Add hotkeys to quickly switch between devices using keyboard shortcuts.</p>
+                <button id="add-first-hotkey-btn" class="btn btn-primary">Add Your First Hotkey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hotkey Editor Modal -->
+    <div id="hotkey-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Hotkey</h2>
+                <button id="close-modal-btn" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="device-select">Target Device</label>
+                    <select id="device-select" class="form-control">
+                        <option value="">Select a device...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Hotkey Combination</label>
+                    <div class="hotkey-recorder" id="hotkey-recorder">
+                        <div class="recorder-display" id="recorder-display">
+                            <span class="placeholder">Press keys to record...</span>
+                        </div>
+                        <button id="clear-hotkey-btn" class="btn btn-secondary btn-sm">Clear</button>
+                    </div>
+                    <div class="form-hint">Click the box above and press your desired key combination</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enabled-checkbox" checked>
+                        <span>Enable this hotkey</span>
+                    </label>
+                </div>
+
+                <div id="conflict-warning" class="warning-box" style="display: none;">
+                    <span class="icon">⚠️</span>
+                    <span id="conflict-message"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="save-hotkey-btn" class="btn btn-primary" disabled>Save Hotkey</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script src="hotkey.js"></script>
+</body>
+</html>
