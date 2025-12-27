@@ -1,0 +1,55 @@
+{
+  "windows": {
+    "certificateThumbprint": "YOUR_CERTIFICATE_THUMBPRINT_HERE",
+    "timestampUrl": "http://timestamp.digicert.com",
+    "digestAlgorithm": "sha256",
+    "notes": [
+      "To find your certificate thumbprint on Windows:",
+      "1. Open PowerShell",
+      "2. Run: Get-ChildItem -Path Cert:\\CurrentUser\\My",
+      "3. Find your code signing certificate",
+      "4. Copy the Thumbprint value",
+      "",
+      "For production, use a certificate from a trusted CA:",
+      "- DigiCert: https://www.digicert.com/signing/code-signing-certificates",
+      "- Sectigo: https://sectigo.com/ssl-certificates-tls/code-signing",
+      "- GlobalSign: https://www.globalsign.com/en/code-signing-certificate"
+    ]
+  },
+  "macos": {
+    "signingIdentity": "Developer ID Application: Your Name (TEAM_ID)",
+    "appleId": "your-apple-id@example.com",
+    "teamId": "YOUR_TEAM_ID",
+    "appSpecificPassword": "xxxx-xxxx-xxxx-xxxx",
+    "notes": [
+      "To set up macOS code signing:",
+      "1. Enroll in Apple Developer Program ($99/year)",
+      "2. Create a Developer ID Application certificate",
+      "3. Download and install in Keychain",
+      "4. Generate an app-specific password:",
+      "   - Go to appleid.apple.com",
+      "   - Sign in",
+      "   - Security → App-Specific Passwords",
+      "   - Generate new password",
+      "",
+      "To find your signing identity:",
+      "Run: security find-identity -v -p codesigning",
+      "",
+      "To find your Team ID:",
+      "Check your Apple Developer account at developer.apple.com"
+    ]
+  },
+  "updater": {
+    "publicKey": "YOUR_PUBLIC_KEY_HERE",
+    "privateKeyPath": "~/.tauri/myapp.key",
+    "notes": [
+      "To generate updater keys:",
+      "1. Run: tauri signer generate -w ~/.tauri/myapp.key",
+      "2. Copy the public key to tauri.conf.json",
+      "3. Keep the private key secure (never commit to git)",
+      "",
+      "To sign an update:",
+      "Run: tauri signer sign /path/to/installer -k ~/.tauri/myapp.key"
+    ]
+  }
+}

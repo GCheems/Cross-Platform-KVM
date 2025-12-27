@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Available - Cross-Platform KVM</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="update.css">
+</head>
+<body>
+    <div class="update-container">
+        <div class="update-header">
+            <h1>Update Available</h1>
+        </div>
+
+        <div id="checking-state" class="update-state">
+            <div class="spinner"></div>
+            <p>Checking for updates...</p>
+        </div>
+
+        <div id="update-available-state" class="update-state" style="display: none;">
+            <div class="update-icon">🎉</div>
+            <h2>New Version Available</h2>
+            <div class="version-info">
+                <p><strong>Current Version:</strong> <span id="current-version"></span></p>
+                <p><strong>New Version:</strong> <span id="new-version"></span></p>
+                <p><strong>Release Date:</strong> <span id="release-date"></span></p>
+            </div>
+            
+            <div class="release-notes" id="release-notes-container" style="display: none;">
+                <h3>What's New</h3>
+                <div id="release-notes"></div>
+            </div>
+
+            <div class="update-actions">
+                <button id="install-btn" class="btn btn-primary">Install Update</button>
+                <button id="later-btn" class="btn btn-secondary">Remind Me Later</button>
+            </div>
+        </div>
+
+        <div id="no-update-state" class="update-state" style="display: none;">
+            <div class="update-icon">✓</div>
+            <h2>You're Up to Date</h2>
+            <p>You have the latest version installed.</p>
+            <p><strong>Version:</strong> <span id="current-version-no-update"></span></p>
+            <div class="update-actions">
+                <button id="close-btn" class="btn btn-primary">Close</button>
+            </div>
+        </div>
+
+        <div id="installing-state" class="update-state" style="display: none;">
+            <div class="spinner"></div>
+            <h2>Installing Update</h2>
+            <p>Please wait while the update is being downloaded and installed...</p>
+            <p class="update-note">The application will restart automatically when the update is complete.</p>
+        </div>
+
+        <div id="error-state" class="update-state" style="display: none;">
+            <div class="update-icon error">⚠️</div>
+            <h2>Update Check Failed</h2>
+            <p id="error-message"></p>
+            <div class="update-actions">
+                <button id="retry-btn" class="btn btn-primary">Retry</button>
+                <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="update.js"></script>
+</body>
+</html>

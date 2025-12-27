@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KVM Permissions Check</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .permission-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #ddd;
+        }
+        .permission-item.granted {
+            border-left-color: #4CAF50;
+        }
+        .permission-item.denied {
+            border-left-color: #f44336;
+        }
+        .permission-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        .permission-details {
+            flex: 1;
+        }
+        .permission-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .permission-status {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #1976D2;
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .instructions pre {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .platform-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 KVM Permissions Check</h1>
+        <div id="platform-info"></div>
+        
+        <div id="loading" class="loading">
+            <p>Checking permissions...</p>
+        </div>
+        
+        <div id="permissions-list" style="display: none;"></div>
+        
+        <div id="actions" style="display: none; margin-top: 20px;">
+            <button class="button" onclick="checkPermissions()">🔄 Refresh Permissions</button>
+            <button class="button" id="request-admin-btn" style="display: none;" onclick="requestAdmin()">Request Admin</button>
+            <button class="button" id="open-accessibility-btn" style="display: none;" onclick="openAccessibility()">Open Accessibility Settings</button>
+            <button class="button" id="open-input-monitoring-btn" style="display: none;" onclick="openInputMonitoring()">Open Input Monitoring Settings</button>
+            <button class="button" id="configure-firewall-btn" style="display: none;" onclick="configureFirewall()">Configure Firewall</button>
+            <button class="button" onclick="showInstructions()">📖 Show Setup Instructions</button>
+        </div>
+        
+        <div id="instructions" class="instructions" style="display: none;"></div>
+    </div>
+
+    <script>
+        const { invoke } = window.__TAURI__.tauri;
+
+        let currentPlatform = '';
+        let permissionStatus = null;
+
+        async function init() {
+            try {
+                // Get platform
+                currentPlatform = await invoke('get_platform');
+                document.getElementById('platform-info').innerHTML = 
+                    `<span class="platform-badge">${currentPlatform}</span>`;
+                
+                // Check permissions
+                await checkPermissions();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                document.getElementById('loading').innerHTML = 
+                    `<p style="color: red;">Error: ${error}</p>`;
+            }
+        }
+
+        async function checkPermissions() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('permissions-list').style.display = 'none';
+                
+                permissionStatus = await invoke('check_permissions');
+                
+                displayPermissions(permissionStatus);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('permissions-list').style.display = 'block';
+                document.getElementById('actions').style.display = 'block';
+                
+                // Show platform-specific buttons
+                updateActionButtons(permissionStatus);
+            } catch (error) {
+                console.error('Error checking permissions:', error);
+                document.getElementById('loading').innerHTML = 
+                    `<p style="color: red;">Error: ${error}</p>`;
+            }
+        }
+
+        function displayPermissions(status) {
+            const list = document.getElementById('permissions-list');
+            list.innerHTML = '';
+            
+            const permissions = [];
+            
+            if (currentPlatform === 'Windows') {
+                permissions.push({
+                    name: 'Administrator Privileges',
+                    granted: status.admin,
+                    description: status.admin ? 'Running with admin privileges' : 'Admin privileges required'
+                });
+            }
+            
+            if (currentPlatform === 'MacOS') {
+                permissions.push({
+                    name: 'Accessibility',
+                    granted: status.accessibility,
+                    description: status.accessibility ? 'Accessibility permissions granted' : 'Accessibility permissions required'
+                });
+                permissions.push({
+                    name: 'Input Monitoring',
+                    granted: status.input_monitoring,
+                    description: status.input_monitoring ? 'Input monitoring permissions granted' : 'Input monitoring permissions required'
+                });
+            }
+            
+            permissions.push({
+                name: 'Network Access',
+                granted: status.network,
+                description: status.network ? 'Network access available' : 'Network access required'
+            });
+            
+            permissions.push({
+                name: 'Firewall Configuration',
+                granted: status.firewall_configured,
+                description: status.firewall_configured ? 'Firewall configured correctly' : 'Firewall configuration needed'
+            });
+            
+            permissions.forEach(perm => {
+                const item = document.createElement('div');
+                item.className = `permission-item ${perm.granted ? 'granted' : 'denied'}`;
+                item.innerHTML = `
+                    <div class="permission-icon">${perm.granted ? '✅' : '❌'}</div>
+                    <div class="permission-details">
+                        <div class="permission-name">${perm.name}</div>
+                        <div class="permission-status">${perm.description}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateActionButtons(status) {
+            // Hide all platform-specific buttons first
+            document.getElementById('request-admin-btn').style.display = 'none';
+            document.getElementById('open-accessibility-btn').style.display = 'none';
+            document.getElementById('open-input-monitoring-btn').style.display = 'none';
+            document.getElementById('configure-firewall-btn').style.display = 'none';
+            
+            if (currentPlatform === 'Windows') {
+                if (!status.admin) {
+                    document.getElementById('request-admin-btn').style.display = 'inline-block';
+                }
+                if (!status.firewall_configured) {
+                    document.getElementById('configure-firewall-btn').style.display = 'inline-block';
+                }
+            }
+            
+            if (currentPlatform === 'MacOS') {
+                if (!status.accessibility) {
+                    document.getElementById('open-accessibility-btn').style.display = 'inline-block';
+                }
+                if (!status.input_monitoring) {
+                    document.getElementById('open-input-monitoring-btn').style.display = 'inline-block';
+                }
+            }
+        }
+
+        async function requestAdmin() {
+            try {
+                await invoke('request_admin_permission');
+                alert('Please restart the application as Administrator');
+            } catch (error) {
+                alert(`Error: ${error}`);
+            }
+        }
+
+        async function openAccessibility() {
+            try {
+                await invoke('open_accessibility_preferences');
+                alert('System Preferences opened. Please grant Accessibility permissions and then refresh.');
+            } catch (error) {
+                alert(`Error: ${error}`);
+            }
+        }
+
+        async function openInputMonitoring() {
+            try {
+                await invoke('open_input_monitoring_preferences');
+                alert('System Preferences opened. Please grant Input Monitoring permissions and then refresh.');
+            } catch (error) {
+                alert(`Error: ${error}`);
+            }
+        }
+
+        async function configureFirewall() {
+            try {
+                await invoke('configure_firewall_windows');
+                alert('Firewall configured successfully!');
+                await checkPermissions();
+            } catch (error) {
+                // Show firewall instructions instead
+                const instructions = await invoke('get_firewall_instructions');
+                const instructionsDiv = document.getElementById('instructions');
+                instructionsDiv.innerHTML = `
+                    <h3>Firewall Configuration Instructions</h3>
+                    <pre>${instructions}</pre>
+                `;
+                instructionsDiv.style.display = 'block';
+            }
+        }
+
+        async function showInstructions() {
+            try {
+                const instructions = await invoke('get_platform_setup_instructions');
+                const instructionsDiv = document.getElementById('instructions');
+                instructionsDiv.innerHTML = `
+                    <h3>Setup Instructions for ${currentPlatform}</h3>
+                    <pre>${instructions}</pre>
+                `;
+                instructionsDiv.style.display = 'block';
+            } catch (error) {
+                alert(`Error: ${error}`);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

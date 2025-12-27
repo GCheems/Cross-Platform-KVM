@@ -1,0 +1,235 @@
+name: Build Installers
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 0.1.0)'
+        required: true
+        default: '0.1.0'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-windows:
+    name: Build Windows MSI
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Create placeholder icons
+        run: |
+          New-Item -ItemType Directory -Force -Path icons
+          New-Item -ItemType File -Force -Path icons/icon.ico
+          New-Item -ItemType File -Force -Path icons/32x32.png
+          New-Item -ItemType File -Force -Path icons/128x128.png
+          New-Item -ItemType File -Force -Path icons/128x128@2x.png
+        shell: pwsh
+      
+      - name: Prepare UI assets
+        run: |
+          New-Item -ItemType Directory -Force -Path ui/dist
+          Copy-Item ui/*.html ui/dist/ -ErrorAction SilentlyContinue
+          Copy-Item ui/*.js ui/dist/ -ErrorAction SilentlyContinue
+          Copy-Item ui/*.css ui/dist/ -ErrorAction SilentlyContinue
+        shell: pwsh
+      
+      - name: Build MSI installer
+        run: cargo tauri build --release
+      
+      - name: Sign MSI (if certificate available)
+        if: ${{ secrets.WINDOWS_CERTIFICATE_THUMBPRINT != '' }}
+        run: |
+          $msiFiles = Get-ChildItem target/release/bundle/msi -Filter "*.msi"
+          foreach ($msi in $msiFiles) {
+            signtool sign /sha1 ${{ secrets.WINDOWS_CERTIFICATE_THUMBPRINT }} /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $msi.FullName
+          }
+        shell: pwsh
+      
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-msi-installer
+          path: target/release/bundle/msi/*.msi
+          if-no-files-found: error
+      
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/release/bundle/msi/*.msi
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    name: Build macOS DMG
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo build
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install ImageMagick
+        run: brew install imagemagick
+      
+      - name: Generate icons
+        run: bash scripts/generate_icons.sh
+      
+      - name: Prepare UI assets
+        run: |
+          mkdir -p ui/dist
+          cp ui/*.html ui/dist/ 2>/dev/null || true
+          cp ui/*.js ui/dist/ 2>/dev/null || true
+          cp ui/*.css ui/dist/ 2>/dev/null || true
+      
+      - name: Build DMG installer
+        run: cargo tauri build --release
+      
+      - name: Sign and Notarize (if credentials available)
+        if: ${{ secrets.APPLE_SIGNING_IDENTITY != '' }}
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          # Sign the DMG
+          for dmg in target/release/bundle/dmg/*.dmg; do
+            codesign --force --sign "$APPLE_SIGNING_IDENTITY" --timestamp "$dmg"
+            
+            # Notarize
+            xcrun notarytool submit "$dmg" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_APP_PASSWORD" \
+              --wait
+            
+            # Staple
+            xcrun stapler staple "$dmg"
+          done
+      
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-dmg-installer
+          path: target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+      
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/release/bundle/dmg/*.dmg
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release-notes:
+    name: Create Release Notes
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-macos]
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Generate release notes
+        run: |
+          echo "# Cross-Platform KVM ${GITHUB_REF#refs/tags/}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "## Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Windows" >> release_notes.md
+          echo "Download the MSI installer and run it. Administrator privileges required." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### macOS" >> release_notes.md
+          echo "Download the DMG file, open it, and drag the app to Applications." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## System Requirements" >> release_notes.md
+          echo "- Windows 10 1809+ or macOS 10.15+" >> release_notes.md
+          echo "- Local network with UDP broadcast support" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## Changes" >> release_notes.md
+          echo "See CHANGELOG.md for detailed changes." >> release_notes.md
+      
+      - name: Update release with notes
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release_notes.md
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

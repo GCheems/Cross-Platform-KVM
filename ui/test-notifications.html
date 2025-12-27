@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification System Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="notifications.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+        }
+        .test-section h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #111827;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .test-btn.success {
+            background: #10b981;
+            color: white;
+        }
+        .test-btn.error {
+            background: #ef4444;
+            color: white;
+        }
+        .test-btn.warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .test-btn.info {
+            background: #3b82f6;
+            color: white;
+        }
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="test-container">
+        <h1 style="margin-bottom: 30px;">Notification System Test</h1>
+        
+        <div class="test-section">
+            <h2>Notifications</h2>
+            <div class="test-buttons">
+                <button class="test-btn success" onclick="testSuccess()">Success Notification</button>
+                <button class="test-btn error" onclick="testError()">Error Notification</button>
+                <button class="test-btn warning" onclick="testWarning()">Warning Notification</button>
+                <button class="test-btn info" onclick="testInfo()">Info Notification</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Edge Highlights</h2>
+            <div class="test-buttons">
+                <button class="test-btn info" onclick="testEdge('top')">Top Edge</button>
+                <button class="test-btn info" onclick="testEdge('bottom')">Bottom Edge</button>
+                <button class="test-btn info" onclick="testEdge('left')">Left Edge</button>
+                <button class="test-btn info" onclick="testEdge('right')">Right Edge</button>
+                <button class="test-btn warning" onclick="testAllEdges()">All Edges</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Active Device Indicator</h2>
+            <div class="test-buttons">
+                <button class="test-btn info" onclick="testIndicator('My MacBook Pro')">Show MacBook</button>
+                <button class="test-btn info" onclick="testIndicator('Windows Desktop')">Show Windows PC</button>
+                <button class="test-btn info" onclick="testIndicator('Local Device')">Show Local</button>
+                <button class="test-btn warning" onclick="hideIndicator()">Hide Indicator</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Scenario Tests</h2>
+            <div class="test-buttons">
+                <button class="test-btn success" onclick="testDeviceSwitch()">Device Switch</button>
+                <button class="test-btn error" onclick="testConnectionError()">Connection Error</button>
+                <button class="test-btn warning" onclick="testNetworkWarning()">Network Warning</button>
+                <button class="test-btn info" onclick="testDeviceDiscovery()">Device Discovery</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script>
+        // Basic notification tests
+        function testSuccess() {
+            notificationManager.success(
+                'Operation Successful',
+                'The operation completed successfully',
+                3000
+            );
+        }
+
+        function testError() {
+            notificationManager.error(
+                'Error Occurred',
+                'Something went wrong. Please try again.'
+            );
+        }
+
+        function testWarning() {
+            notificationManager.warning(
+                'Warning',
+                'This action may have unintended consequences',
+                5000
+            );
+        }
+
+        function testInfo() {
+            notificationManager.info(
+                'Information',
+                'Here is some useful information for you',
+                3000
+            );
+        }
+
+        // Edge highlight tests
+        function testEdge(edge) {
+            edgeHighlightManager.show(edge, 500);
+        }
+
+        function testAllEdges() {
+            ['top', 'bottom', 'left', 'right'].forEach((edge, index) => {
+                setTimeout(() => edgeHighlightManager.show(edge, 500), index * 200);
+            });
+        }
+
+        // Active device indicator tests
+        function testIndicator(deviceName) {
+            activeDeviceIndicator.show(deviceName, 3000);
+        }
+
+        function hideIndicator() {
+            activeDeviceIndicator.hide();
+        }
+
+        // Scenario tests
+        function testDeviceSwitch() {
+            edgeHighlightManager.show('right', 500);
+            setTimeout(() => {
+                notificationManager.success(
+                    'Device Switched',
+                    'Now controlling Windows Desktop',
+                    2000
+                );
+                activeDeviceIndicator.show('Windows Desktop', 3000);
+            }, 300);
+        }
+
+        function testConnectionError() {
+            notificationManager.error(
+                'Connection Error',
+                'Failed to connect to MacBook Pro: Connection timeout'
+            );
+        }
+
+        function testNetworkWarning() {
+            notificationManager.warning(
+                'Network Warning',
+                'Network latency is high (>100ms). Performance may be affected.',
+                5000
+            );
+        }
+
+        function testDeviceDiscovery() {
+            notificationManager.success(
+                'Device Discovered',
+                'Found MacBook Pro (macOS)',
+                3000
+            );
+        }
+    </script>
+</body>
+</html>

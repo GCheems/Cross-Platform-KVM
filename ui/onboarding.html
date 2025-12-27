@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Cross-Platform KVM</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <div class="onboarding-container">
+        <!-- Progress indicator -->
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Welcome</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Permissions</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Pairing</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Layout</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Welcome -->
+        <div class="onboarding-step active" id="step-1">
+            <div class="step-content">
+                <div class="welcome-icon">🖱️⌨️</div>
+                <h1>Welcome to Cross-Platform KVM</h1>
+                <p class="subtitle">Share your keyboard, mouse, and clipboard across multiple computers</p>
+                
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">🖥️</span>
+                        <div>
+                            <h3>Seamless Switching</h3>
+                            <p>Move your mouse across screen edges to switch between devices</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🔒</span>
+                        <div>
+                            <h3>Secure Connection</h3>
+                            <p>All communication is encrypted with TLS</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📋</span>
+                        <div>
+                            <h3>Clipboard Sync</h3>
+                            <p>Copy on one device, paste on another</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-primary btn-large" id="start-btn">Get Started</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Permissions -->
+        <div class="onboarding-step" id="step-2">
+            <div class="step-content">
+                <h1>Grant Required Permissions</h1>
+                <p class="subtitle">KVM needs special permissions to capture and control input</p>
+
+                <div class="permission-list">
+                    <!-- Windows permissions -->
+                    <div class="permission-item windows-only" style="display: none;">
+                        <div class="permission-header">
+                            <span class="permission-icon">🔐</span>
+                            <h3>Administrator Access</h3>
+                            <span class="permission-status" id="admin-status">Pending</span>
+                        </div>
+                        <p>Required to install low-level keyboard and mouse hooks</p>
+                        <button class="btn btn-secondary" id="request-admin-btn">Request Permission</button>
+                    </div>
+
+                    <!-- macOS permissions -->
+                    <div class="permission-item macos-only" style="display: none;">
+                        <div class="permission-header">
+                            <span class="permission-icon">♿</span>
+                            <h3>Accessibility Access</h3>
+                            <span class="permission-status" id="accessibility-status">Pending</span>
+                        </div>
+                        <p>Required to capture keyboard and mouse events</p>
+                        <button class="btn btn-secondary" id="request-accessibility-btn">Open System Preferences</button>
+                        <div class="permission-help">
+                            <p><strong>How to grant:</strong></p>
+                            <ol>
+                                <li>Open System Preferences → Security & Privacy</li>
+                                <li>Click the Privacy tab</li>
+                                <li>Select Accessibility from the list</li>
+                                <li>Click the lock icon and enter your password</li>
+                                <li>Check the box next to "Cross-Platform KVM"</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Input monitoring (macOS) -->
+                    <div class="permission-item macos-only" style="display: none;">
+                        <div class="permission-header">
+                            <span class="permission-icon">⌨️</span>
+                            <h3>Input Monitoring</h3>
+                            <span class="permission-status" id="input-monitoring-status">Pending</span>
+                        </div>
+                        <p>Required to monitor keyboard input</p>
+                        <button class="btn btn-secondary" id="request-input-monitoring-btn">Open System Preferences</button>
+                    </div>
+
+                    <!-- Network access -->
+                    <div class="permission-item">
+                        <div class="permission-header">
+                            <span class="permission-icon">🌐</span>
+                            <h3>Network Access</h3>
+                            <span class="permission-status" id="network-status">Checking...</span>
+                        </div>
+                        <p>Required to discover and communicate with other devices</p>
+                        <div class="permission-help" id="firewall-help" style="display: none;">
+                            <p><strong>Firewall Configuration:</strong></p>
+                            <p>Please allow incoming connections for Cross-Platform KVM in your firewall settings.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-secondary" id="back-to-welcome-btn">Back</button>
+                    <button class="btn btn-primary" id="continue-to-pairing-btn" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Device Pairing -->
+        <div class="onboarding-step" id="step-3">
+            <div class="step-content">
+                <h1>Pair Your Devices</h1>
+                <p class="subtitle">Discover and connect to other devices on your network</p>
+
+                <div class="pairing-status">
+                    <div class="scanning-indicator">
+                        <div class="spinner"></div>
+                        <p>Scanning for devices...</p>
+                    </div>
+                </div>
+
+                <div class="discovered-devices" id="discovered-devices">
+                    <!-- Devices will be populated here -->
+                </div>
+
+                <div class="pairing-help">
+                    <h3>💡 Tips</h3>
+                    <ul>
+                        <li>Make sure other devices are running Cross-Platform KVM</li>
+                        <li>All devices must be on the same local network</li>
+                        <li>You'll need to authorize connections on each device</li>
+                    </ul>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-secondary" id="back-to-permissions-btn">Back</button>
+                    <button class="btn btn-secondary" id="skip-pairing-btn">Skip for Now</button>
+                    <button class="btn btn-primary" id="continue-to-layout-btn" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Layout Configuration -->
+        <div class="onboarding-step" id="step-4">
+            <div class="step-content">
+                <h1>Configure Device Layout</h1>
+                <p class="subtitle">Arrange your devices to match their physical positions</p>
+
+                <div class="layout-tutorial">
+                    <div class="tutorial-canvas" id="tutorial-canvas">
+                        <div class="tutorial-device local-device" id="local-device">
+                            <div class="device-label">This Device</div>
+                            <div class="device-name" id="local-device-name">Loading...</div>
+                        </div>
+                        <!-- Paired devices will be added here -->
+                    </div>
+
+                    <div class="tutorial-instructions">
+                        <h3>How to arrange devices:</h3>
+                        <ol>
+                            <li><strong>Drag devices</strong> to position them relative to this device</li>
+                            <li><strong>Match physical layout</strong> - if your laptop is to the left of your desktop, place it on the left</li>
+                            <li><strong>Test switching</strong> by moving your mouse to the edge</li>
+                        </ol>
+                        
+                        <div class="tutorial-tip">
+                            <span class="tip-icon">💡</span>
+                            <p>You can always change this later in the Layout Configuration</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-secondary" id="back-to-pairing-btn">Back</button>
+                    <button class="btn btn-primary btn-large" id="finish-btn">Finish Setup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="onboarding.js"></script>
+</body>
+</html>
